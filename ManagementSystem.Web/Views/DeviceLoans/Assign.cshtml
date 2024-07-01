@@ -1,0 +1,59 @@
+﻿@model DeviceLoanDto
+
+@{
+    ViewData["Title"] = "Assign";
+    //Accessing the parameter from URL
+    var departmentId = Context.Request.Query["departId"];
+    var deviceTypeId = Context.Request.Query["typeId"];
+}
+
+<h1 class="page-header">Assign device</h1>
+<div class="page-content">
+    <div class="form-content">
+        <form class="form-detail text-center" asp-action="Assign">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" name="departId" value="@departmentId" />
+            <input type="hidden" name="typeId" value="@deviceTypeId" />
+
+            <div class="form-row-total">
+                <div class="form-row">
+                    <label asp-for="DeviceId" class="control-label">Device Name</label>
+                    <select asp-for="DeviceId" class="form-control input-text input-label" asp-items="ViewBag.DeviceId"></select>
+                </div>
+                &nbsp;
+                &ensp;
+                <div class="form-row">
+                    <label asp-for="EmployeeId" class="control-label">Name of Employee</label>
+                    <select asp-for="EmployeeId" class="form-control input-text input-label" asp-items="ViewBag.EmployeeId"></select>
+                </div>
+            </div>
+           
+            <div class="form-group text-center mt-5">
+                @*If the person exist from the that database hide the Add button*@
+                @if (ViewBag.Error is null)
+                {
+                    <input type="submit" value="Assign" class="btn btn-warning btn-shape" />
+                }
+                | @* <a class="btn btn-success btn-shape" asp-controller="Devices"  asp-action="DeviceSummary">Back to Summary</a> *@
+                <a class="btn btn-success btn-shape mx-2" asp-controller="Devices" asp-action="Index"
+                   asp-route-id="@departmentId" asp-route-typeId="@deviceTypeId">
+                    Back To Devices
+                </a>
+            </div>
+
+            @* Display the Error messsage below the buttons *@
+            @if (ViewBag.Error is not null)
+            {
+                <div class="alert alert-danger text-center" role="alert">
+                    @ViewBag.Error
+                </div>
+            }
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

@@ -1,0 +1,102 @@
+﻿@model DeviceDto
+
+@{
+    ViewData["Title"] = "Edit";
+}
+
+<h1 class="page-header">Edit Device</h1>
+<div class="page-content">
+    <div class="form-content">
+        <form class="form-detail text-center" asp-action="Edit">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="Id" />
+            <div class="form-row-total">
+
+                <div class="form-row">
+                <label asp-for="DepartId" class="control-label">Department Name</label>
+                <select asp-for="DepartId" class ="form-control input-text input-label" asp-items="ViewBag.DepartmentId"></select>
+                </div>
+                &nbsp;
+                &ensp;
+                <div class="form-row">
+                    <label asp-for="TypeId" class="control-label">Device Type</label>
+                    <select asp-for="TypeId" class="form-control input-text input-label" asp-items="ViewBag.DeviceTypeId"></select>
+                </div>
+                &nbsp;
+                &ensp;
+                <div class="form-row">
+                    <label asp-for="DeviceName" class="control-label"></label>
+                    <input asp-for="DeviceName" class="form-control input-text input-label" />
+                    <span asp-validation-for="DeviceName" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="form-row-total">
+                <div class="form-row">
+                    <label asp-for="SerialNo" class="control-label"></label>
+                    <input asp-for="SerialNo" class="form-control input-text input-label" />
+                    <span asp-validation-for="SerialNo" class="text-danger"></span>
+                </div>
+                &nbsp;
+                &ensp;
+                <div class="form-row">
+                    <label asp-for="IMEINo" class="control-label"></label>
+                    <input asp-for="IMEINo" class="form-control input-text input-label" />
+                    <span asp-validation-for="IMEINo" class="text-danger"></span>
+                </div>
+                &nbsp;
+                &ensp;
+                <div class="form-row">
+                    <label asp-for="Condition" class="control-label"></label>
+                    <select asp-for="Condition" class="form-control input-text input-label">
+                        @foreach(var condition in Enum.GetValues(typeof(Condition)))
+                        {
+                            <option value="@condition">@condition</option>
+                        }
+                    </select>
+                    <span asp-validation-for="Condition" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="form-row-total">
+                <div class="form-row">
+                    <label asp-for="PurchasedPrice" class="control-label"></label>
+                    <input asp-for="PurchasedPrice" class="form-control input-text input-label" />
+                    <span asp-validation-for="PurchasedPrice" class="text-danger"></span>
+                </div>
+                &nbsp;
+                &ensp;
+                <div class="form-row">
+                    <label asp-for="PurchasedDate" class="control-label"></label>
+                    <input asp-for="PurchasedDate" class="form-control input-text input-label" />
+                    <span asp-validation-for="PurchasedDate" class="text-danger"></span>
+                </div>
+
+             </div>
+
+            <div class="form-group text-center mt-3">
+                @*If the employee exist from the that database hide the Add button*@
+                @if (ViewBag.Error is null)
+                {
+                    <input type="submit" value="Update" class="btn btn-primary btn-shape" />
+                }
+                | <a class="btn btn-success btn-shape mx-2" asp-action="Index" asp-route-id="@Model.DepartId" asp-route-typeId="@Model.TypeId">
+                    Back To Devices
+                </a>
+            </div>
+
+            @* Display the Error messsage below the buttons *@
+            @if (ViewBag.Error is not null)
+            {
+                <div class="alert alert-danger text-center" role="alert">
+                    @ViewBag.Error
+                </div>
+            }
+        </form>
+    </div>
+</div>
+
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

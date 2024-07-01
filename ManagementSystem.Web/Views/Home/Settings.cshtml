@@ -1,0 +1,53 @@
+﻿@{
+    ViewData["Title"] = "Settings";
+}
+
+<div class="row">
+    <div class="col-sm-12">
+        <h1 class="page-header"> System Settings</h1>
+    </div>
+</div>
+<p>
+    <a class="btn btn-info btn-shape mt-2" asp-controller="Home" asp-action="Index">Main Menu</a>
+</p>
+<div class="row" style="margin-top: 2rem;">
+
+    <div class="col-lg-3">
+        <div class="card" style="height: 180px;">
+            <div class="card-header">Device types</div>
+            <div class="card-body">
+                <div style="text-align: center;">
+                    <a class="mx-auto" asp-area="" asp-controller="DeviceTypes" asp-action="Index">
+                        <i id="icon" style="--clr: #edadad;" class="fa fa-laptop"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-3">
+        <div class="card" style="height: 180px;">
+            <div class="card-header">Departments</div>
+            <div class="card-body">
+                <div style="text-align: center;">
+                    <a class="mx-auto" asp-area="" asp-controller="Departments" asp-action="Index">
+                        <i id="icon" style="--clr: #0fc70f;" class="fa fa-street-view"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-3">
+        <div class="card" style="height: 180px;">
+            <div class="card-header">Office</div>
+            <div class="card-body">
+                <div style="text-align: center;">
+                    <a class="mx-auto" asp-area="" asp-controller="Offices" asp-action="Index">
+                        <i id="icon" style="--clr: #a834eb;" class="fa fa-home"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>

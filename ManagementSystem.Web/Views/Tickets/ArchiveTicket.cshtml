@@ -1,0 +1,40 @@
+﻿@model TicketDto
+
+@{
+    ViewData["Title"] = "Archive Ticket";
+}
+
+<h1 class="page-header">Archive the Ticket</h1>
+<div class="page-content">
+    <div class="form-content">
+        <form class="form-detail text-center" asp-action="ArchiveTicket">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-group">
+                <label asp-for="TicketSolution" class="control-label">The device solution (what you did on the device)</label>
+                <textarea asp-for="TicketSolution" rows="4" class="form-control"></textarea>
+                <span asp-validation-for="TicketSolution" class="text-danger"></span>
+            </div>
+            <div class="form-group text-center mt-5">
+                @*If the person exist from the that database hide the Add button*@
+                @if (ViewBag.Error is null)
+                {
+                    <input type="submit" value="Archive" class="btn btn-warning btn-shape" />
+                }
+                | <a class="btn btn-success btn-shape" asp-action="Index">Back to List</a>
+            </div>
+
+            @* Display the Error messsage below the buttons *@
+            @if (ViewBag.Error is not null)
+            {
+                <div class="alert alert-danger text-center" role="alert">
+                    @ViewBag.Error
+                </div>
+            }
+        </form>
+    </div>
+</div>
+
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

@@ -1,0 +1,35 @@
+﻿@{
+    ViewData["Title"] = "Error";
+    var Action = ViewBag.CurrentAction as string;
+    var Controller =ViewBag.CurrentController as string;
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>@ViewData["Title"]</title>
+</head>
+<body>
+
+    <div class="alert alert-info text-center p-5 my-5">
+        <p>
+            <a class="btn btn-info mx-auto btn-shape" style="width: 150px;" .
+            asp-controller="@Controller" asp-action="@Action">Go back</a>
+        </p>
+    </div>
+    <div class="error-container">
+        <div class="error-box">
+            <h2>Error</h2>
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <ul>
+                    @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                    {
+                        <li>@error.ErrorMessage</li>
+                    }
+                </ul>
+            }
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,82 @@
+﻿@model IEnumerable<DeviceDto>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+@if (Model is null || Model.Any() == false)
+{
+    <a class="btn btn-info btn-shape mt-5" asp-controller="Home" asp-action="Index">Main Menu</a>
+    <div class="alert alert-info text-center p-5 my-5">
+    <h4>@ViewBag.Error</h4>
+        <h6>
+            <a asp-action="Create">Click here to create a device</a>
+        </h6>
+    </div>
+}
+else
+{
+    <h2 class="page-header">List of Devices</h2>
+    <div class="row mb-2">
+    <p>
+        <a class="btn btn-primary btn-shape" asp-action="Create">Create New</a>
+        <a class="btn btn-info btn-shape mx-2" asp-controller="Devices" asp-action="DeviceSummary">Device Summary</a>
+    </p>
+    <div class="custom-table-responsive mx-auto">
+        <table id="fresh-table" class="table custom-table text-center">
+            <thead class="text-center">
+                <tr>
+                        <th>@Html.DisplayNameFor(model => model.DepartmentName)</th>
+                        <th>@Html.DisplayNameFor(model => model.DeviceName)</th>
+                        <th>@Html.DisplayNameFor(model => model.IdentityNumber)</th>
+                        <th>@Html.DisplayNameFor(model => model.Condition)</th>
+
+                        <th>Assigned To</th>
+                        <th>Options</th>
+                    </tr>
+                </thead>
+                <tbody class="text-center">
+                    @foreach (var item in Model)
+                    {
+                        <tr class="spacer">
+                            <td colspan="100"></td>
+                        </tr>
+                        <tr>
+                            <td>@Html.DisplayFor(modelItem => item.DepartmentName)</td>
+                            <td>@Html.DisplayFor(modelItem => item.DeviceName)</td>
+                            <td>@Html.DisplayFor(modelItem => item.IdentityNumber)</td>
+                            <td>@Html.DisplayFor(modelItem => item.Condition)</td>
+                            <td>@Html.DisplayFor(ModelItem => item.FullName)</td>
+                            <td>
+                                @if (String.IsNullOrEmpty(item.FullName))
+                                {
+                                    <a class="btn btn-warning btn-sm" asp-controller="DeviceLoans" asp-action="Assign"
+                                       asp-route-departId="@item.DepartId" asp-route-typeId ="@item.TypeId" asp-route-id="@item.Id">Assign</a>
+                                }
+                                else
+                                {
+                                    <a class="btn btn-warning btn-sm" asp-controller="DeviceLoans" asp-action="Unassign"
+                                       asp-route-departId="@item.DepartId" asp-route-typeId="@item.TypeId" asp-route-id="@item.Id">Unassign</a>
+                                }|
+                                <a class="btn btn-danger btn-sm" asp-controller="Tickets" asp-action="Create"
+                                    asp-route-id="@item.Id">
+                                    <i>Ticket</i>
+                                </a> |
+                                <a class="btn btn-info btn-sm" asp-controller="DeviceLoans" asp-action="Details"
+                                    asp-route-id="@item.Id">
+                                    <i class="fa fa-info-circle" aria-hidden="true"></i>
+                                </a> |
+                                <a class="btn btn-primary btn-sm" asp-action="Edit" asp-route-id="@item.Id">
+                                    <i class="fa fa-pencil" aria-hidden="true"></i>
+                                </a> |
+                                <a class="btn btn-danger btn-sm" asp-action="Delete" asp-route-id="@item.Id">
+                                    <i class="fa fa-trash" aria-hidden="true"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}

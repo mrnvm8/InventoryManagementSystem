@@ -1,0 +1,154 @@
+@model IEnumerable<DeviceLoanDto>
+@{
+    ViewData["Title"] = "Details and History";
+
+    var Tickets = ViewBag.Ticket as IEnumerable<TicketDto>;
+    var Device = ViewData["Device"] as DeviceDto;
+    //ArgumentNullException: Value cannot be null. (Parameter 'source')
+    static (decimal monthlyPrice, decimal yearlyPrice) CalcDepreciationYearly(decimal purchasedPrice, DateTime purchasedDate)
+    {
+        // Annual depreciation rate (33.3% per year)
+        decimal annualDepreciationRate = 0.333m;
+        // Calculate the monthly depreciation rate
+        decimal monthlyDepreciationRate = 1 - (decimal)Math.Pow((double)(1 - annualDepreciationRate), 1.0 / 12.0);
+
+        // Current date
+        DateTime currentDate = DateTime.Now;
+
+        // Calculate the number of months since purchase
+        int totalMonths = (currentDate.Year - purchasedDate.Year) * 12 + currentDate.Month - purchasedDate.Month;
+        // Cap the total months at 36 (3 years)
+        totalMonths = Math.Min(totalMonths, 36);
+
+        decimal currentMonthlyPrice = purchasedPrice;
+        decimal currentYearlyPrice = purchasedPrice;
+
+        for (int month = 1; month <= totalMonths; month++)
+        {
+            currentMonthlyPrice -= currentMonthlyPrice * monthlyDepreciationRate;
+
+            // Update yearly price only at the end of each year (every 12 months)
+            if (month % 12 == 0)
+            {
+                currentYearlyPrice = currentMonthlyPrice;
+            }
+        }
+
+        return (currentMonthlyPrice, currentYearlyPrice);
+    }
+
+   
+}
+
+<h3 class="page-header">Device More Details</h3>
+<div class="row mb-2">
+    <p>
+        <a class="btn btn-info btn-shape mx-1" asp-controller="Devices" asp-action="DeviceSummary">Device
+            Summary</a>
+        
+        <a class="btn btn-success btn-shape mx-2" asp-controller="Devices" asp-action="Index" asp-route-id="@Device.DepartId" asp-route-typeId="@Device.TypeId">
+          Back To Devices
+        </a>
+
+        <a class="btn btn-primary btn-shape" asp-controller="Devices" asp-action="AllDevices">All Devices</a>
+
+    </p>
+    <div class="table-responsive custom-table-responsive mx-auto">
+
+        <table class="table custom-table">
+            <thead class="text-center">
+                <tr>
+                    <th>Type</th>
+                    <th>Device name</th>
+                    <th>Department</th>
+                    <th>Identity Number</th>
+                    <th>PURCHASE PRICE</th>
+                    <th>PURCHASE DATE</th>
+                    <th>Depreciation Monyly</th>
+                    <th>Current Price</th>
+                </tr>
+            </thead>
+            <tbody class="text-center">
+                <tr class="spacer">
+                    <td colspan="100"></td>
+                </tr>
+                <td>@Device.TypeName!</td>
+                <td>@Device.DeviceName</td>
+                <td>@Device.DepartmentName</td>
+                <td>@Device.IdentityNumber</td>
+                <td>@Device.PurchasedPrice.ToString("C2")</td>
+                <td>@Device.PurchasedDate.ToString("yyyy-MM-dd")</td>
+                <td>@CalcDepreciationYearly(Device.PurchasedPrice, Device.PurchasedDate).monthlyPrice.ToString("C2")</td>
+                <td>@CalcDepreciationYearly(Device.PurchasedPrice, Device.PurchasedDate).yearlyPrice.ToString("C2")
+                    <span class="badge" style="color:green; font-size:12px;">(With 33.3%)</span>
+                </td>
+
+            </tbody>
+        </table>
+        @if (Model is not null && Model.Any())
+        {
+              <!----Loan History---->
+            <h3 class="page-header">Loan History Of The Device</h3>
+            <table class="table custom-table" id="fresh-table">
+                <thead class="text-center">
+                    <tr>
+                        <th>Assigned To</th>
+                        <th>When ?</th>
+                        <th>Until ?</th>
+                    </tr>
+                </thead>
+                <tbody class="text-center">
+                    <tr class="spacer">
+                        <td colspan="100"></td>
+                    </tr>
+                    @foreach (var device in Model)
+                    {
+                        //I don't want the currently assigned info
+                        if (device.ReturnDate == DateTime.Parse("2009-01-01"))
+                        {
+                            continue;
+                        }
+
+                        <tr>
+                            <td>@device.EmployeeName</td>
+                            <td>@device.AssignedDate.ToString("yyyy-MM-dd")</td>
+                            <td>@DateTime.Parse(device.ReturnDate.ToString()!).ToString("yyyy-MM-dd")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+        @if (Tickets is not null && Tickets.Any())
+        {
+            <!----Loan History---->
+            <h3 class="page-header">Ticket History Of The Device</h3>
+            <table class="table custom-table" id="fresh-table">
+                <thead class="text-center">
+                    <tr>
+                        <th>DeviceName</th>
+                        <th>Identity Number</th>
+                        <th>Ticket Tittle</th>
+                        <th>Ticket Reported Date</th>
+                        <th>Fixed Date</th>
+                    </tr>
+                </thead>
+                <tbody class="text-center">
+                    <tr class="spacer">
+                        <td colspan="100"></td>
+                    </tr>
+                    @foreach (var ticket in Tickets)
+                    {
+                        <tr>
+                            <td>@ticket.DeviceName</td>
+                            <td>@Device.IdentityNumber</td>
+                            <td>@ticket.TicketTitle</td>
+                            <td>@ticket.TicketCreatedDate.ToString("yyyy-MM-dd")</td>
+                            <td>@ticket.FixedDate!.Value.ToString("yyyy-MM-dd")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+      
+    </div>
+</div>

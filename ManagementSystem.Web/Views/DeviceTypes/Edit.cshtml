@@ -1,0 +1,51 @@
+﻿@model DeviceTypeDto
+
+@{
+    ViewData["Title"] = "Edit";
+}
+
+<h1 class="page-header">Editing Device Type record</h1>
+<div class="page-content">
+    <div class="form-content">
+        <form class="form-detail text-center" asp-action="Edit">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="Id" />
+            <div class="form-row-total">
+                <div class="form-row">
+                    <label asp-for="Name" class="control-label"></label>
+                    <input asp-for="Name" class="form-control input-text input-label" />
+                    <span asp-validation-for="Name" class="text-danger"></span>
+                </div>
+                &nbsp;
+                &ensp;
+                <div class="form-row">
+                    <label asp-for="Description" class="control-label"></label>
+                    <input asp-for="Description" class="form-control input-text input-label" />
+                    <span asp-validation-for="Description" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="form-group text-center mt-5">
+                @*If the person exist from the that database hide the Add button*@
+                @if (ViewBag.Error is null)
+                {
+                    <input type="submit" value="Edit" class="btn btn-warning btn-shape" />
+                }
+                | <a class="btn btn-success btn-shape" asp-action="Index">Back to List</a>
+            </div>
+
+            @* Display the Error messsage below the buttons *@
+            @if (ViewBag.Error is not null)
+            {
+                <div class="alert alert-danger text-center" role="alert">
+                    @ViewBag.Error
+                </div>
+            }
+        </form>
+    </div>
+</div>
+
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

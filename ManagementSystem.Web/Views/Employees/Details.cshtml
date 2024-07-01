@@ -1,0 +1,56 @@
+﻿@model IEnumerable<DeviceDto>
+
+@{
+    ViewData["Title"] = "Details";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@if (Model is null || Model.Any() == false)
+{
+    <a class="btn btn-info btn-shape mt-5" asp-action="Index">Employee</a>
+    <div class="alert alert-info text-center p-5 my-5">
+        <h6>
+            @ViewBag.Error
+        </h6>
+    </div>
+}
+else
+{
+    <h2 class="page-header">List Device Assigned to Employees</h2>
+    <div class="row mb-2">
+    <div class="custom-table-responsive mx-auto">
+        <p>
+            <a class="btn btn-info btn-shape mt-5" asp-action="Index">Employee List</a>
+        </p>
+        <table id="fresh-table" class="table custom-table text-center">
+            <thead class="text-center">
+                <tr>
+                    <th>Type Name</th>
+                    <th>Device name(s)</th>
+                    <th>Serial No</th>
+                    <th>Assigned</th>
+                    <th>Option</th>
+                </tr>
+            </thead>
+            <tbody class="text-center">
+                @foreach (var item in Model)
+                    {
+                        <tr class="spacer">
+                            <td colspan="100"></td>
+                        </tr>
+                        <tr>
+                            <td>@item.TypeName</td>
+                            <td>@item.DeviceName</td>
+                            <td>@item.IdentityNumber 
+                            </td><td>@item.FullName</td>
+                            <td>
+                                <a class="btn btn-warning btn-sm" asp-controller="DeviceLoans" asp-action="Unassign"
+                                   asp-route-departId="@item.DepartId" asp-route-typeId="@item.TypeId" asp-route-id="@item.Id">Unassign</a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}

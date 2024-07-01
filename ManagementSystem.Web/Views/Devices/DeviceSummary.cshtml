@@ -1,0 +1,75 @@
+﻿
+@model IEnumerable<DeviceSummary>
+
+@{
+    ViewData["Title"] = "Device Summary";
+}
+
+
+@if (Model is null || Model.Any() == false)
+{
+    <div class="alert alert-info text-center p-5 my-5">
+        <h4>@ViewBag.Error</h4>
+        <p>
+            <a class="btn btn-info mx-auto btn-shape" style="width: 150px;" asp-controller="Home" asp-action="Index">Main Menu</a>
+        </p>
+        
+        <h6>
+            <a asp-action="Create">Click here to create a device</a>
+        </h6>
+    </div>
+
+} else{
+
+    <h1 class="page-header"> Axium device summary</h1>
+    <div class="row mb-2">
+        <p>
+            <a class="btn btn-primary btn-shape" asp-action="Create">Create New</a>
+            <a class="btn btn-info mx-auto btn-shape" style="width: 150px;" asp-controller="Home" asp-action="Index">Main Menu</a>
+        </p>
+
+        <div class="table-responsive custom-table-responsive mx-auto">
+            <table id="fresh-table" class="table custom-table">
+                <thead class="text-center">
+                    <tr>
+                        <th class="text-center" scope="col">Office Name</th>
+                        <th class="text-center" scope="col">Programs</th>
+                        <th class="text-center" scope="col">Device Type</th>
+                        <th class="text-center" scope="col">Total</th>
+                        <th class="text-center" scope="col">Assigned</th>
+                        <th class="text-center" scope="col">Unavailable</th>
+                        <th class="text-center" scope="col">Available</th>
+
+                    </tr>
+                </thead>
+                <tbody >
+                    <tr class="spacer"><td colspan="100"></td></tr>
+                    @foreach (var summary in Model)
+                    {
+                        <tr scope="row">
+                            <td class="text-center">@Html.DisplayTextFor(modelItem => summary.OfficeName)</td>
+                            <td class="text-center">
+                            <a asp-controller="Devices" asp-action="Index" asp-route-id="@summary.DepartmentId" asp-route-typeId="@summary.DeviceTypeId">
+                                @Html.DisplayTextFor(modelItem => summary.Name)
+                                </a>
+                            </td>
+                            <td class="text-center">
+                                <a asp-controller="Devices" asp-action="Index" asp-route-id="@summary.DepartmentId" asp-route-typeId="@summary.DeviceTypeId">
+                                    @Html.DisplayTextFor(modelItem => summary.TypeName)
+                                </a>
+                            </td>
+                            <td class="text-center">@Html.DisplayTextFor(modelItem => summary.Total)</td>
+                            <td class="text-center">@Html.DisplayTextFor(modelItem => summary.Assigned)</td>
+                            <td class="text-center">@Html.DisplayTextFor(modelItem => summary.Unavailable) </td>
+                            <td class="text-center">@Html.DisplayTextFor(modelItem => summary.Available)</td>
+
+                        </tr>
+                        <tr class="spacer"><td colspan="100"></td></tr>
+                    }
+                </tbody>
+            </table>
+            <br />
+
+        </div>
+    </div>
+}

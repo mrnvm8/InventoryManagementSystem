@@ -1,0 +1,80 @@
+﻿@model EmployeeRequest
+
+@{
+    ViewData["Title"] = "Create";
+}
+
+<h1 class="page-header">Adding new Employee</h1>
+<div class="page-content">
+    <div class="form-content">
+        <form class="form-detail text-center"  asp-action="Create">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+            <div class="form-row-total">
+                <div class="form-row">
+                    <label asp-for="Name" class="control-label"></label>
+                    <input asp-for="Name" class="form-control input-text input-label" />
+                    <span asp-validation-for="Name" class="text-danger"></span>
+                </div>
+                &nbsp;
+                &ensp;
+                <div class="form-row">
+                    <label asp-for="Surname" class="control-label"></label>
+                    <input asp-for="Surname" class="form-control input-text input-label" />
+                    <span asp-validation-for="Surname" class="text-danger"></span>
+                </div>   
+            </div>
+
+            <div class="form-row-total">
+                <div class="form-row">
+                    <label asp-for="DepartmentId" class="control-label">Department Name</label>
+                    <select asp-for="DepartmentId" class="form-control input-text input-label" asp-items="ViewBag.DepartmentId"></select>
+                </div>
+                &nbsp;
+                &ensp;
+                <div class="form-row">
+                    <label asp-for="Gender" class="control-label"></label>
+                    <select asp-for="Gender" class="form-select input-label">
+                        @foreach (var gender in Enum.GetValues(typeof(Gender)))
+                        {
+                            <option value="@gender">@gender</option>
+                        }
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-row-total">
+                <div class="form-row">
+                    <label asp-for="WorkEmail" class="control-label"></label>
+                    <input asp-for="WorkEmail" class="form-control input-text input-label" />
+                    <span asp-validation-for="WorkEmail" class="text-danger"></span>
+                </div>
+            </div>
+
+
+            <div class="form-group text-center mt-5">
+                @*If the employee exist from the that database hide the Add button*@
+                @if (ViewData.ModelState.IsValid)
+                {
+                    <input type="submit" value="Create" class="btn btn-warning btn-shape" />
+                }else{
+                    <a class="btn btn-warning btn-shape" asp-action="Create">Clear</a>
+                }
+                 | <a class="btn btn-success btn-shape" asp-action="Index">Back to List</a>
+            </div>
+
+            @* Display the Error messsage below the buttons *@
+            @if (ViewBag.Error is not null)
+            {
+                <div class="alert alert-danger text-center" role="alert">
+                    @ViewBag.Error
+                </div>
+            }
+        </form>
+    </div>
+</div>
+
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

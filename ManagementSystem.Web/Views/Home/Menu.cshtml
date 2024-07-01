@@ -1,0 +1,97 @@
+﻿@using System.Security.Claims;
+@{
+    var role = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role)!.Value;
+}
+
+<div class="row">
+    <div class="col-sm-12">
+        <h1 class="page-header"> Datalicious Menu</h1>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-3">
+        <div class="card" style="height: 180px;">
+            <div class="card-header">Devices</div>
+            <div class="card-body">
+                <div style="text-align: center;">
+                    <a class="mx-auto" asp-area="" asp-controller="Devices" asp-action="DeviceSummary">
+                        <i id="icon" style="--clr: #ffa117;" class="fa fa-desktop" aria-hidden="true"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-3">
+        <div class="card" style="height: 180px;">
+            <div class="card-header">Ticket</div>
+            <div class="card-body">
+                <div style="text-align: center;">
+                    <a class="mx-auto" asp-area="" asp-controller="Tickets" asp-action="Index">
+                        <i id="icon" style="--clr: #cceb34;" class="fa fa-ticket"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    @if (role.Contains("Admin"))
+    {
+
+        <div class="col-lg-3">
+            <div class="card" style="height: 180px;">
+                <div class="card-header">Employees</div>
+                <div class="card-body">
+                    <div style="text-align: center;">
+                        <a class="mx-auto" asp-area="" asp-controller="Employees" asp-action="Index">
+                            <i id="icon" style="--clr: #0fc70f;" class="fa fa-user"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3">
+            <div class="card" style="height: 180px;">
+                <div class="card-header">Logins</div>
+                <div class="card-body">
+                    <div style="text-align: center;">
+                        <a class="mx-auto" asp-area="" asp-controller="Users" asp-action="Index">
+                            <i id="icon" style="--clr: #a834eb;" class="fa fa-users"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3">
+            <div class="card" style="height: 180px;">
+                <div class="card-header">Setting</div>
+                <div class="card-body">
+                    <div style="text-align: center;">
+                        <a class="mx-auto" asp-area="" asp-controller="Home" asp-action="Settings">
+                            <i id="icon" style="--clr: #fc0a5f;" class="fa fa-cog" aria-hidden="true"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <div class="col-lg-3">
+        <div class="card" style="height: 180px;">
+            <div class="card-header">All Devices</div>
+            <div class="card-body">
+                <div style="text-align: center;">
+                    <a class="mx-auto" asp-area="" asp-controller="Devices" asp-action="AllDevices">
+
+                        <i id="icon" style="--clr: #bae0de;" class="fa fa-crosshairs" aria-hidden="true"></i>
+                    </a>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

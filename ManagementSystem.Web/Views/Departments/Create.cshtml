@@ -1,0 +1,55 @@
+﻿@model DepartmentRequest
+
+@{
+    ViewData["Title"] = "Create";
+}
+
+<h1 class="page-header">Create new Department</h1>
+<div class="page-content">
+    <div class="form-content">
+        <form class="form-detail text-center" asp-action="Create">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-row-total">
+                <div class="form-row">
+                    <label asp-for="OfficeId" class="control-label"></label>
+                    <select asp-for="OfficeId" class="form-select input-text input-label" asp-items="ViewBag.OfficeId"></select>
+                </div>
+                &nbsp;
+                &ensp;
+                <div class="form-row">
+                    <label asp-for="DepartmentName" class="control-label"></label>
+                    <input asp-for="DepartmentName" class="form-control input-text input-label" />
+                    <span asp-validation-for="DepartmentName" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Description" class="control-label"></label>
+                <textarea asp-for="Description" rows="4" class="form-control"></textarea>
+                <span asp-validation-for="Description" class="text-danger"></span>
+            </div>
+
+
+            <div class="form-group text-center mt-5">
+                @if (ViewBag.Error is null)
+                {
+                    <input type="submit" value="Create" class="btn btn-warning btn-shape" />
+                }
+                | <a class="btn btn-success btn-shape" asp-action="Index">Back to List</a>
+            </div>
+
+            @* Display the Error messsage below the buttons *@
+            @if (ViewBag.Error is not null)
+            {
+                <div class="alert alert-danger text-center" role="alert">
+                    @ViewBag.Error
+                </div>
+            }
+        </form>
+    </div>
+</div>
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

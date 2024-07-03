@@ -4,9 +4,10 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ManagementSystem.Web.Controllers
 {
-    [Authorize(AuthenticationConstants.AdminPolicyName)]
+    
     public class UsersController(IAuthService _authService) : BaseController
     {
+        [Authorize(AuthenticationConstants.AdminPolicyName)]
         public async Task<IActionResult> Index(CancellationToken token = default)
         {
             var result = await _authService.GetUsers(token);
@@ -20,6 +21,10 @@ namespace ManagementSystem.Web.Controllers
         [AllowAnonymous]
         public ActionResult Login()
         {
+            if (HttpContext.User.Identity!.IsAuthenticated)
+            {
+                return RedirectToAction("Index", "Home");
+            }
             return View();
         }
 
@@ -50,6 +55,10 @@ namespace ManagementSystem.Web.Controllers
         [AllowAnonymous]
         public ActionResult UserRegistration()
         {
+            if (HttpContext.User.Identity!.IsAuthenticated)
+            {
+                return RedirectToAction("Index", "Home");
+            }
             return View();
         }
 
@@ -72,6 +81,7 @@ namespace ManagementSystem.Web.Controllers
             return RedirectToAction("Index", "Home");
         }
 
+        [Authorize(AuthenticationConstants.AdminPolicyName)]
         public IActionResult PasswordChange(Guid id, CancellationToken token = default)
         {
             if (!Guid.TryParse(id.ToString(), out _) || id == Guid.Empty)
@@ -86,6 +96,7 @@ namespace ManagementSystem.Web.Controllers
         // POST: Users/passwordChange
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(AuthenticationConstants.AdminPolicyName)]
         public async Task<IActionResult> PasswordChange(Guid id, [FromForm] UserRequest request, CancellationToken token = default)
         {
             if (!Guid.TryParse(id.ToString(), out _) || id == Guid.Empty)
@@ -104,6 +115,7 @@ namespace ManagementSystem.Web.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        [Authorize(AuthenticationConstants.AdminPolicyName)]
         public async Task<IActionResult> Delete(Guid id)
         {
 
@@ -125,6 +137,7 @@ namespace ManagementSystem.Web.Controllers
         // POST: DeviceTypes/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
+        [Authorize(AuthenticationConstants.AdminPolicyName)]
         public async Task<IActionResult> DeleteConfirmed(Guid id)
         {
             if (id == Guid.Empty)

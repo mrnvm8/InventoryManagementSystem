@@ -48,17 +48,17 @@ builder.Services.AddAuthentication(opt =>
     opt.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
     opt.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
     opt.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme; // Use cookie as the default
-
 })
  .AddCookie(opt =>
 {
     // Cookie-based authentication configuration
     opt.Cookie.Name = AppConstants.XAccessToken;   // Cookie name for authentication token
     opt.LoginPath = "/Users/Login";             // Path to the login page
+    opt.AccessDeniedPath = "/Users/AccessDenied";
     opt.Cookie.SameSite = SameSiteMode.Strict; // Prevents CSRF attacks by ensuring cookies are not sent in cross-origin requests.
     opt.Cookie.SecurePolicy = CookieSecurePolicy.Always; // Ensures cookies are only sent over HTTPS.
     opt.Cookie.HttpOnly = true; // Prevents client-side JavaScript from accessing cookies, reducing the risk of XSS attacks.
-    opt.ExpireTimeSpan = TimeSpan.FromMinutes(30); // Sets a shorter token expiration time to reduce the window of opportunity for attacks if a token is compromised.
+    opt.ExpireTimeSpan = TimeSpan.FromMinutes(Convert.ToInt32((_config["JwtSection:ExpiryMinutes"]))); // Sets a shorter token expiration time to reduce the window of opportunity for attacks if a token is compromised.
     opt.SlidingExpiration = true; // Extends the expiration time with each request, providing a better user experience while maintaining security.
     opt.Events = new CookieAuthenticationEvents
     {
@@ -71,7 +71,7 @@ builder.Services.AddAuthentication(opt =>
             // redirect to the login page
             context.Response.Redirect(context.RedirectUri);
             return Task.CompletedTask;
-        }
+        },
     };
 })
 .AddJwtBearer(opt =>
@@ -79,11 +79,12 @@ builder.Services.AddAuthentication(opt =>
     // JWT bearer authentication configuration
     opt.TokenValidationParameters = new TokenValidationParameters
     {
+        
         ValidateIssuerSigningKey = true,
         ValidateAudience = true,
         ValidateIssuer = true,
         ValidateLifetime = true,
-        ClockSkew = TimeSpan.FromMinutes(5),       // Allow 5 minutes for clock skew
+        ClockSkew = TimeSpan.FromMinutes(60),       // Allow 60 minutes for clock skew
         ValidIssuer = _config["JwtSection:Issuer"]!,
         ValidAudience = _config["JwtSection:Audience"]!,
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["JwtSection:Key"]!))
@@ -111,8 +112,9 @@ builder.Services.AddAuthentication(opt =>
             logger.LogWarning("JWT challenge triggered. Redirecting to login.");
 
             // Redirect to login on 401 challenge
-            if (context.Response.StatusCode == 401)
+            if (context.Response.StatusCode != StatusCodes.Status401Unauthorized)
             {
+                logger.LogInformation("Handling status code response. Redirecting to login.");
                 context.HandleResponse(); // Suppress the default behavior
                 context.Response.Redirect("/Users/Login");
             }
@@ -153,9 +155,11 @@ builder.Services.AddControllersWithViews(opt =>
 {
     // This filter will require all controllers and actions to be authenticated by default
     //Enforces that all actions within the application require the user to be authenticated.
-    opt.Filters.Add(new AuthorizeFilter(new AuthorizationPolicyBuilder()
-       .RequireAuthenticatedUser()
-       .Build()));
+    // Add a global authorization filter
+    var policy = new AuthorizationPolicyBuilder()
+                    .RequireAuthenticatedUser()
+                    .Build();
+    opt.Filters.Add(new AuthorizeFilter(policy));
 });
 
 var app = builder.Build();
@@ -188,8 +192,22 @@ app.UseAuthorization();
 app.UseMiddleware<CheckAuthenticationMiddleware>();
 
 app.MapControllerRoute(
-    name: "default",
-    pattern: "{controller=Users}/{action=Login}/{id?}");
+    name: "login",
+    pattern: "Users/Login",
+    defaults: new { controller = "Users", action = "Login" });
 
+app.MapControllerRoute(
+    name: "registration",
+    pattern: "Users/Registration",
+    defaults: new { controller = "Users", action = "Registration" });
+
+app.MapControllerRoute(
+    name: "default",
+    pattern: "{controller=Home}/{action=Index}/{id?}")
+    .RequireAuthorization(AuthenticationConstants.LoggedInPolicyName);
+
+//app.MapControllerRoute(
+//    name: "default",
+//    pattern: "{controller=Users}/{action=Login}/{id?}");
 
 app.Run();

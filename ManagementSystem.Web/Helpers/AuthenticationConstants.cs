@@ -6,6 +6,8 @@ public class AuthenticationConstants
 
     public const string UserPolicyName = "User";
     public const string AdminPolicyName = "Admin";
+    public const string AnonymousPolicyName = "RequireAnonymous";
+    public const string LoggedInPolicyName = "RequireLoggedIn";
 
     //Represent the Role as the same a Database role values
     //This is saying that either the role is admin or user, this policy apply

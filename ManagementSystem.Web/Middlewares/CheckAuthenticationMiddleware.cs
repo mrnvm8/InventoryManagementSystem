@@ -33,10 +33,20 @@ public class CheckAuthenticationMiddleware
         {
             // Log any unexpected errors
             _logger.LogError(ex, "An unexpected error occurred.");
-            // Rethrow the exception to let the default exception handler deal with it
+            // Optionally rethrow the exception to let the default exception handler deal with it
+            // throw;
             // Redirect to a generic error page
-            //await HandleExceptionAsync(context, ex);
-            throw;
+            await HandleExceptionAsync(context, ex);
+           
+        }
+
+        // Check for 401 Unauthorized response
+        if (context.Response.StatusCode == StatusCodes.Status401Unauthorized)
+        {
+            _logger.LogInformation("Handling 401 response in middleware. Redirecting to login.");
+
+            // Redirect to login page
+            context.Response.Redirect("/Users/Login");
         }
     }
 
@@ -47,7 +57,8 @@ public class CheckAuthenticationMiddleware
 
         // Redirect to a custom error page
         context.Response.Redirect("/Home/Error");
-
+        // Log the exception for further analysis
+       
         return Task.CompletedTask;
     }
 }

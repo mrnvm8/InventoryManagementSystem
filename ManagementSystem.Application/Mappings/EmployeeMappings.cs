@@ -45,12 +45,13 @@ public static class EmployeeMappings
             Name = employee.Name,
             Surname = employee.Surname,
             Gender = employee.Gender,
-            WorkEmail = employee.WorkEmail,
+            WorkEmail = employee.WorkEmail.ToLower(),
             CanRegister = employee.CanRegister,
             Department = employee.Department!.Name,
             OfficeName = employee.Department.Offices!.Name,
-            FullName = $"{employee.Surname.Substring(0, 1).ToUpper() + employee.Surname.Substring(1, employee.Surname.Length - 1).ToLower()}, " +
-                        $"{employee.Name.Substring(0, 1).ToUpper() + employee.Name.Substring(1, employee.Name.Length - 1).ToLower()}"
+            FullName = $"{employee.Name.Substring(0, 1).ToUpper() + employee.Name.Substring(1, employee.Name.Length - 1).ToLower()}, " +
+                       $"{employee.Surname.Substring(0, 1).ToUpper() + employee.Surname.Substring(1, employee.Surname.Length - 1).ToLower()}"
+                       
         };
     }
 }

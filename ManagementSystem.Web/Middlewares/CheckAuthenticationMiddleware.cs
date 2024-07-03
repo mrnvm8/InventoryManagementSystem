@@ -39,15 +39,6 @@ public class CheckAuthenticationMiddleware
             await HandleExceptionAsync(context, ex);
            
         }
-
-        // Check for 401 Unauthorized response
-        if (context.Response.StatusCode == StatusCodes.Status401Unauthorized)
-        {
-            _logger.LogInformation("Handling 401 response in middleware. Redirecting to login.");
-
-            // Redirect to login page
-            context.Response.Redirect("/Users/Login");
-        }
     }
 
     private static Task HandleExceptionAsync(HttpContext context, Exception exception)

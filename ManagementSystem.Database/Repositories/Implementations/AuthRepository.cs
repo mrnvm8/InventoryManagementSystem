@@ -126,7 +126,7 @@ namespace ManagementSystem.Database.Repositories.Implementations
             var securityToken = new JwtSecurityToken(
                 issuer: _jwtSection.Issuer,
                 audience: _jwtSection.Audience,
-                expires: DateTime.UtcNow.AddMinutes(_jwtSection.ExpiryMinutes),
+                expires: DateTime.UtcNow.AddHours(1),
                 claims: userClaims,
                 signingCredentials: signingCredentials
                 );

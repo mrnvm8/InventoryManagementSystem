@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.AspNetCore.Mvc.Authorization;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System.Globalization;
 using System.Security.Claims;
@@ -47,18 +48,19 @@ builder.Services.AddAuthentication(opt =>
     // Set default authentication schemes for various scenarios
     opt.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
     opt.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-    opt.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme; // Use cookie as the default
+    opt.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme; 
+    opt.DefaultScheme = JwtBearerDefaults.AuthenticationScheme; ; 
 })
  .AddCookie(opt =>
 {
     // Cookie-based authentication configuration
     opt.Cookie.Name = AppConstants.XAccessToken;   // Cookie name for authentication token
     opt.LoginPath = "/Users/Login";             // Path to the login page
-    opt.AccessDeniedPath = "/Users/AccessDenied";
+    opt.AccessDeniedPath = "/Home/Error";
     opt.Cookie.SameSite = SameSiteMode.Strict; // Prevents CSRF attacks by ensuring cookies are not sent in cross-origin requests.
     opt.Cookie.SecurePolicy = CookieSecurePolicy.Always; // Ensures cookies are only sent over HTTPS.
     opt.Cookie.HttpOnly = true; // Prevents client-side JavaScript from accessing cookies, reducing the risk of XSS attacks.
-    opt.ExpireTimeSpan = TimeSpan.FromMinutes(Convert.ToInt32((_config["JwtSection:ExpiryMinutes"]))); // Sets a shorter token expiration time to reduce the window of opportunity for attacks if a token is compromised.
+    opt.ExpireTimeSpan = TimeSpan.FromHours(1); // Cookie expires after 1 hour
     opt.SlidingExpiration = true; // Extends the expiration time with each request, providing a better user experience while maintaining security.
     opt.Events = new CookieAuthenticationEvents
     {
@@ -76,15 +78,18 @@ builder.Services.AddAuthentication(opt =>
 })
 .AddJwtBearer(opt =>
 {
+
+    opt.RequireHttpsMetadata = true; // Allows HTTP for development purposes
+    opt.SaveToken = true; // Saves the token in the HttpContext
+
     // JWT bearer authentication configuration
     opt.TokenValidationParameters = new TokenValidationParameters
     {
-        
         ValidateIssuerSigningKey = true,
         ValidateAudience = true,
         ValidateIssuer = true,
         ValidateLifetime = true,
-        ClockSkew = TimeSpan.FromMinutes(60),       // Allow 60 minutes for clock skew
+        ClockSkew = TimeSpan.Zero, // No clock skew allowed
         ValidIssuer = _config["JwtSection:Issuer"]!,
         ValidAudience = _config["JwtSection:Audience"]!,
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["JwtSection:Key"]!))
@@ -112,9 +117,10 @@ builder.Services.AddAuthentication(opt =>
             logger.LogWarning("JWT challenge triggered. Redirecting to login.");
 
             // Redirect to login on 401 challenge
-            if (context.Response.StatusCode != StatusCodes.Status401Unauthorized)
+            // Check for 401 Unauthorized response
+            if (!context.HttpContext.User.Identity!.IsAuthenticated)
             {
-                logger.LogInformation("Handling status code response. Redirecting to login.");
+                logger.LogInformation("Handling unauthenticated user. Redirecting to login.");
                 context.HandleResponse(); // Suppress the default behavior
                 context.Response.Redirect("/Users/Login");
             }
@@ -125,7 +131,16 @@ builder.Services.AddAuthentication(opt =>
             var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<Program>>();
             logger.LogInformation("Message received for JWT bearer authentication.");
 
-            context.Token = context.Request.Cookies[AppConstants.XAccessToken];
+            // Check if the token exists in the cookie
+            var token = context.Request.Cookies[AppConstants.XAccessToken];
+            if (string.IsNullOrEmpty(token))
+            {
+                logger.LogWarning("No token found in cookies.");
+            }
+            else
+            {
+                context.Token = token;
+            }
             return Task.CompletedTask;
         }
     };
@@ -134,6 +149,9 @@ builder.Services.AddAuthentication(opt =>
 //add Authorisation and your policies
 builder.Services.AddAuthorization(opt =>
 {
+    opt.AddPolicy(AuthenticationConstants.LoggedInPolicyName, policy =>
+            policy.RequireAuthenticatedUser());
+
     //Policy for Admin only
     opt.AddPolicy(AuthenticationConstants.AdminPolicyName,
         p => p.RequireClaim(claimType: ClaimTypes.Role, AuthenticationConstants.AdminClaimName));
@@ -165,12 +183,11 @@ builder.Services.AddControllersWithViews(opt =>
 var app = builder.Build();
 
 // Configure the localization options
-var supportedCultures = new[] { new CultureInfo("en-zA") };
 app.UseRequestLocalization(new RequestLocalizationOptions
 {
     DefaultRequestCulture = new RequestCulture("en-ZA"),
-    SupportedCultures = supportedCultures,
-    SupportedUICultures = supportedCultures,
+    SupportedCultures = new[] { new CultureInfo("en-ZA") },
+    SupportedUICultures = new[] { new CultureInfo("en-ZA") },
 });
 
 // Configure the HTTP request pipeline.

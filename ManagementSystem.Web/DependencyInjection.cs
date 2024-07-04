@@ -2,11 +2,16 @@
 using ManagementSystem.Database;
 using ManagementSystem.Shared.Helpers;
 using ManagementSystem.Web.Helpers;
+using ManagementSystem.Web.Middlewares;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.CookiePolicy;
+using Microsoft.AspNetCore.Localization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.IdentityModel.Tokens;
+using System.Globalization;
 using System.Security.Claims;
 using System.Text;
 
@@ -23,14 +28,42 @@ namespace ManagementSystem.Web
                             .Get<MySQLSettings>() ??
                              throw new InvalidOperationException("Connection string not found.");
 
-            //Add Application DI
+            // Add application services
             services.AddApplication();
 
-            //Add Inventory Database DI
+            // Add inventory database services
             services
                 .AddInventoryData(_config)
                 .AddDatabase(_settings.ConnectionString);
 
+            // Add MVC services with global authorization filter
+            services.AddControllersWithViews(opt =>
+            {
+                // This filter will require all controllers and actions to be authenticated by default
+                //Enforces that all actions within the application require the user to be authenticated.
+                // Add a global authorization filter
+                var policy = new AuthorizationPolicyBuilder()
+                                .RequireAuthenticatedUser()
+                                .Build();
+                opt.Filters.Add(new AuthorizeFilter(policy));
+            });
+
+            // Ensure that all communications are done over HTTPS: <= For Production
+            builder.Services.AddHttpsRedirection(options =>
+            {
+                options.RedirectStatusCode = StatusCodes.Status307TemporaryRedirect;
+                options.HttpsPort = 443; // Ensure this is set to the correct HTTPS port
+            });
+
+            //Ensure your cookies are configured securely: <= For Production
+            services.Configure<CookiePolicyOptions>(options =>
+            {
+                options.MinimumSameSitePolicy = SameSiteMode.Strict;
+                options.HttpOnly = HttpOnlyPolicy.Always;
+                options.Secure = CookieSecurePolicy.Always;
+            });
+
+            // Add authentication services
             services.AddAuthentication(opt =>
             {
                 // Set default authentication schemes for various scenarios
@@ -47,10 +80,11 @@ namespace ManagementSystem.Web
                  opt.AccessDeniedPath = "/Home/Error";
                  opt.Cookie.SameSite = SameSiteMode.Strict; // Prevents CSRF attacks by ensuring cookies are not sent in cross-origin requests.
                  opt.Cookie.SecurePolicy = CookieSecurePolicy.Always; // Ensures cookies are only sent over HTTPS.
-                 opt.Cookie.HttpOnly = true; // Prevents client-side JavaScript from accessing cookies, reducing the risk of XSS attacks.
-                 opt.ExpireTimeSpan = TimeSpan.FromMinutes(30); // Ensures the cookie expires after 1 hour
-                 opt.Cookie.MaxAge = TimeSpan.FromMinutes(30); // Ensures the cookie is considered valid for 1 hour
+                 opt.Cookie.HttpOnly = true; // Prevents client-side JavaScript from accessing cookies, reducing the risk of XSS attacks: <= For Production if not make it false
+                 opt.ExpireTimeSpan = TimeSpan.FromMinutes(30); // Ensures the cookie expires after 30 minutes
+                 opt.Cookie.MaxAge = TimeSpan.FromMinutes(30); // Ensures the cookie is considered valid for 30 minutes
                  opt.SlidingExpiration = true; // Extends the expiration time with each request, providing a better user experience while maintaining security.
+                 
                  opt.Events = new CookieAuthenticationEvents
                  {
                      OnRedirectToLogin = context =>
@@ -59,7 +93,7 @@ namespace ManagementSystem.Web
                          var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<Program>>();
                          logger.LogInformation("Redirecting to login from: {Path}", context.Request.Path);
 
-                         // redirect to the login page
+                         // Redirect to the login page
                          context.Response.Redirect(context.RedirectUri);
                          return Task.CompletedTask;
                      },
@@ -68,7 +102,7 @@ namespace ManagementSystem.Web
             .AddJwtBearer(opt =>
             {
 
-                opt.RequireHttpsMetadata = true; // Allows HTTP for development purposes
+                opt.RequireHttpsMetadata = true; // Ensure HTTPS is required
                 opt.SaveToken = true; // Saves the token in the HttpContext
 
                 // JWT bearer authentication configuration
@@ -77,18 +111,20 @@ namespace ManagementSystem.Web
                     ValidateIssuerSigningKey = true,
                     ValidateAudience = true,
                     ValidateIssuer = true,
-                    ValidateLifetime = true,
+                    ValidateLifetime = true,    // Validate token lifetime
                     ClockSkew = TimeSpan.Zero, // No clock skew allowed
                     ValidIssuer = _config["JwtSection:Issuer"]!,
                     ValidAudience = _config["JwtSection:Audience"]!,
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["JwtSection:Key"]!)),
-                    // Set the token lifetime to 1 hour
+                   
+                    // Set the token lifetime to 30 minutes
                     LifetimeValidator = (before, expires, token, param) =>
                     {
                         // Ensure token expiration is greater than current time
                         return expires != null && expires > DateTime.UtcNow;
                     }
                 };
+
                 // Retrieve token from cookie for JWT bearer authentication
                 opt.Events = new JwtBearerEvents
                 {
@@ -111,8 +147,7 @@ namespace ManagementSystem.Web
                         var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<Program>>();
                         logger.LogWarning("JWT challenge triggered. Redirecting to login.");
 
-                        // Redirect to login on 401 challenge
-                        // Check for 401 Unauthorized response
+                        // Redirect to login on 401 challenge if user is unauthenticated
                         if (!context.HttpContext.User.Identity!.IsAuthenticated)
                         {
                             logger.LogInformation("Handling unauthenticated user. Redirecting to login.");
@@ -126,7 +161,7 @@ namespace ManagementSystem.Web
                         var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<Program>>();
                         logger.LogInformation("Message received for JWT bearer authentication.");
 
-                        // Check if the token exists in the cookie
+                        // Retrieve token from cookie for JWT bearer authentication
                         var token = context.Request.Cookies[AppConstants.XAccessToken];
                         if (string.IsNullOrEmpty(token))
                         {
@@ -141,7 +176,7 @@ namespace ManagementSystem.Web
                 };
             });
 
-            //add Authorisation and your policies
+            // Add authorization policies
             services.AddAuthorization(opt =>
             {
                 opt.AddPolicy(AuthenticationConstants.LoggedInPolicyName, policy =>
@@ -161,21 +196,63 @@ namespace ManagementSystem.Web
                                             c.User.HasClaim(ClaimTypes.Role, AuthenticationConstants.UserClaimName)));
             });
 
+            return services;
+        }
 
-            // Add services to the container.
-            // Register MVC services with a global authorization filter
-            services.AddControllersWithViews(opt =>
+        public static WebApplication BuildAndConfigure(this WebApplicationBuilder builder)
+        {
+            var app = builder.Build();
+
+            // Configure the localization options
+            app.UseRequestLocalization(new RequestLocalizationOptions
             {
-                // This filter will require all controllers and actions to be authenticated by default
-                //Enforces that all actions within the application require the user to be authenticated.
-                // Add a global authorization filter
-                var policy = new AuthorizationPolicyBuilder()
-                                .RequireAuthenticatedUser()
-                                .Build();
-                opt.Filters.Add(new AuthorizeFilter(policy));
+                DefaultRequestCulture = new RequestCulture("en-ZA"),
+                SupportedCultures = new[] { new CultureInfo("en-ZA") },
+                SupportedUICultures = new[] { new CultureInfo("en-ZA") },
             });
 
-            return services;
+            // Configure the HTTP request pipeline.
+            if (!app.Environment.IsDevelopment())
+            {
+                app.UseExceptionHandler("/Home/Error");
+                app.UseHsts();
+
+                // Ensure all communications are done over HTTPS
+                //app.UseHttpsRedirection();
+            }
+
+
+            // Enforce HTTPS
+            app.UseHttpsRedirection();
+            app.UseStaticFiles();
+
+            app.UseRouting();
+
+            // Use authentication and authorization
+            app.UseAuthentication();
+            app.UseAuthorization();
+
+            // Add custom exception handling middleware
+            app.UseMiddleware<CheckAuthenticationMiddleware>();
+
+            // Map controller routes
+            app.MapControllerRoute(
+                name: "login",
+                pattern: "Users/Login",
+                defaults: new { controller = "Users", action = "Login" });
+
+            app.MapControllerRoute(
+                name: "registration",
+                pattern: "Users/Registration",
+                defaults: new { controller = "Users", action = "Registration" });
+
+              // Map default controller route
+            app.MapControllerRoute(
+                name: "default",
+                pattern: "{controller=Home}/{action=Index}/{id?}")
+                .RequireAuthorization(AuthenticationConstants.LoggedInPolicyName);
+
+            return app;
         }
     }
 }

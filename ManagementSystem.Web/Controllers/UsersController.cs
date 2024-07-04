@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ManagementSystem.Web.Controllers
 {
-    
+
     public class UsersController(IAuthService _authService) : BaseController
     {
         [Authorize(AuthenticationConstants.AdminPolicyName)]
@@ -118,10 +118,9 @@ namespace ManagementSystem.Web.Controllers
         [Authorize(AuthenticationConstants.AdminPolicyName)]
         public async Task<IActionResult> Delete(Guid id)
         {
-
-            if (id == Guid.Empty)
+            if (!Guid.TryParse(id.ToString(), out _) || id == Guid.Empty)
             {
-                ViewBag.Error = "Invalid Id";
+                ModelState.AddModelError("", new ControllersErrors().InvalidID("User"));
                 return View();
             }
 
@@ -140,9 +139,9 @@ namespace ManagementSystem.Web.Controllers
         [Authorize(AuthenticationConstants.AdminPolicyName)]
         public async Task<IActionResult> DeleteConfirmed(Guid id)
         {
-            if (id == Guid.Empty)
+            if (!Guid.TryParse(id.ToString(), out _) || id == Guid.Empty)
             {
-                ViewBag.Error = "Invalid Id";
+                ModelState.AddModelError("", new ControllersErrors().InvalidID("User"));
                 return View();
             }
 
@@ -161,7 +160,7 @@ namespace ManagementSystem.Web.Controllers
                 Token,
                 new CookieOptions
                 {
-                    Expires = DateTime.UtcNow.AddMinutes(5),
+                    Expires = DateTime.UtcNow.AddMinutes(30),
                     Secure = true,
                     IsEssential = true,
                     HttpOnly = true,

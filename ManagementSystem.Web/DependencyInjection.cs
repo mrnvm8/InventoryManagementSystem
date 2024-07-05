@@ -8,7 +8,6 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.CookiePolicy;
 using Microsoft.AspNetCore.Localization;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.IdentityModel.Tokens;
 using System.Globalization;
@@ -48,12 +47,14 @@ namespace ManagementSystem.Web
                 opt.Filters.Add(new AuthorizeFilter(policy));
             });
 
-            // Ensure that all communications are done over HTTPS: <= For Production
-            builder.Services.AddHttpsRedirection(options =>
-            {
-                options.RedirectStatusCode = StatusCodes.Status307TemporaryRedirect;
-                options.HttpsPort = 443; // Ensure this is set to the correct HTTPS port
-            });
+            //// Ensure that all communications are done over HTTPS: <= For Production
+            ////A disaster on NGinx command it if you are using nginx it create endless loop of redirecting Http to Https
+            ////since you will be having certificate on Nginx
+            //builder.Services.AddHttpsRedirection(options =>
+            //{
+            //    options.RedirectStatusCode = StatusCodes.Status307TemporaryRedirect;
+            //    options.HttpsPort = 443; // Ensure this is set to the correct HTTPS port
+            //});
 
             //Ensure your cookies are configured securely: <= For Production
             services.Configure<CookiePolicyOptions>(options =>
@@ -84,7 +85,7 @@ namespace ManagementSystem.Web
                  opt.ExpireTimeSpan = TimeSpan.FromMinutes(30); // Ensures the cookie expires after 30 minutes
                  opt.Cookie.MaxAge = TimeSpan.FromMinutes(30); // Ensures the cookie is considered valid for 30 minutes
                  opt.SlidingExpiration = true; // Extends the expiration time with each request, providing a better user experience while maintaining security.
-                 
+
                  opt.Events = new CookieAuthenticationEvents
                  {
                      OnRedirectToLogin = context =>
@@ -116,7 +117,7 @@ namespace ManagementSystem.Web
                     ValidIssuer = _config["JwtSection:Issuer"]!,
                     ValidAudience = _config["JwtSection:Audience"]!,
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["JwtSection:Key"]!)),
-                   
+
                     // Set the token lifetime to 30 minutes
                     LifetimeValidator = (before, expires, token, param) =>
                     {
@@ -246,7 +247,7 @@ namespace ManagementSystem.Web
                 pattern: "Users/Registration",
                 defaults: new { controller = "Users", action = "Registration" });
 
-              // Map default controller route
+            // Map default controller route
             app.MapControllerRoute(
                 name: "default",
                 pattern: "{controller=Home}/{action=Index}/{id?}")

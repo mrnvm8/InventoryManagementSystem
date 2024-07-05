@@ -43,13 +43,3 @@ function VisiblePassword() {
 	}
 }
 
-//Local global settings
-$(document).ready(function () {
-	// Set the validator's number method to handle comma as a decimal separator
-	$.validator.methods.number = function (value, element) {
-		return this.optional(element) || !isNaN(Globalize.parseNumber(value));
-	};
-
-	// Set the culture (this example uses en-US)
-	Globalize.locale('en-ZA');
-});

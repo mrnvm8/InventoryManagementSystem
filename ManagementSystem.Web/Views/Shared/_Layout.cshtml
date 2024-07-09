@@ -9,10 +9,11 @@
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/ManagementSystem.Web.styles.css" asp-append-version="true" />
-
+    @Html.AntiForgeryToken()
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/js/all.min.js"
             integrity="sha512-naukR7I+Nk6gp7p5TMA4ycgfxaZBJ7MO5iC3Fp6ySQyKFHOGfpkSZkYVWV5R7u7cfAicxanwYQ5D1e17EfJcMA=="
             crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
 </head>
 <body>
     @if (User.Identity!.IsAuthenticated)
@@ -32,12 +33,13 @@
                         @_http.GetUserName()
                     </span>
                     <span>
-                        <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Logout">
-                            <i class="fa fa-sign-out" aria-hidden="true"></i>
-                            SignOut
-                        </a>
+                        <form class="logoutForm" asp-area="" asp-controller="Home" asp-action="Logout" method="post">
+                            <button type="submit" class="btn btn-link nav-link">
+                                <i class="fa fa-sign-out" aria-hidden="true"></i>
+                                Logout
+                            </button>
+                        </form>
                     </span>
-
                 </div>
             </nav>
         </header>

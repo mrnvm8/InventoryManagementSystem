@@ -2,7 +2,6 @@ using ManagementSystem.Web.Helpers;
 using ManagementSystem.Web.Models;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
@@ -35,7 +34,6 @@ namespace ManagementSystem.Web.Controllers
         public async Task<IActionResult> Logout()
         {
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-            await HttpContext.SignOutAsync(JwtBearerDefaults.AuthenticationScheme);
 
             // Remove the authentication token from cookies
             Response.Cookies.Delete(AppConstants.XAccessToken);
@@ -58,7 +56,7 @@ namespace ManagementSystem.Web.Controllers
                 Message = message ?? "An unexpected error occurred. Please try again later."
             };
 
-            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier , Message = message});
+            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier, Message = message });
         }
 
 
